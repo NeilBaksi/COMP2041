@@ -4,55 +4,55 @@ use strict;
 
 # Assignment 2 'plpy.pl' written by Supratik Baksi, z5081777
 
-my $whitespaceCounter = 0; #global variable? Its outside the loop...
+my $whitespaceCounter = 0; #global variable
 
 while (my $line = <>) {
 
 	#NOTE: Deal with semicolons on a line by line basis
 
-# translate #! line 
+# to translate #! line 
 	if ($line =~ /^#!/ && $. == 1) {
 		print "#!/usr/bin/python2.7 -u\n";
 
- # Blank & comment lines (unchanged)
+# to deal with blank & comment lines
 	} elsif ($line =~ /^\s*#/ || $line =~ /^\s*$/) {
 		print $line;
 
- #print statement with newline
+# to deal with print statements with newline
 	} elsif ($line =~ /^\s*print\s*"(.*)\\n"[\s;]*$/) {
-		my $printInput = $1;
-		if($printInput =~ /ARGV\[(.*)\]$/) { #that variable is ARGV[]
+		my $printIN = $1;
+		if($printIN =~ /ARGV\[(.*)\]$/) { #that variable is ARGV[]
 			&whitespacePrinter($whitespaceCounter);
 			my $location = $1;
 			$location =~ s/\$//;
 			print "print sys.argv[$location + 1]\n"
-		} elsif ($printInput =~ /^(.*)\s*\$(.*)*$/) { #there is ONE $variable
-			$printInput =~ s/\$//; #removes variable signs
+		} elsif ($printIN =~ /^(.*)\s*\$(.*)*$/) { #there is ONE $variable
+			$printIN =~ s/\$//; #removes variable signs
 			&whitespacePrinter($whitespaceCounter);
-			print "print $printInput\n";
-		} elsif ($printInput =~ /^(.*)\s*\@(.*)*$/) { #there is ONE @variable
-			$printInput =~ s/\@//;
+			print "print $printIN\n";
+		} elsif ($printIN =~ /^(.*)\s*\@(.*)*$/) { #there is ONE @variable
+			$printIN =~ s/\@//;
 			&whitespacePrinter($whitespaceCounter);
-			print "print $printInput\n";
+			print "print $printIN\n";
 		} else { #there is no variable (or many, which currently kill everything)
 			&whitespacePrinter($whitespaceCounter);
-			print "print \"$printInput\"\n";
+			print "print \"$printIN\"\n";
 		}
 
 #print statment with no newline
 	} elsif ($line =~ /^\s*print\s*"(.*)"[\s;]*$/) { 
-		my $printInput = $1;
-		if ($printInput =~ /^\s*print\s*\$\_\s*;$/) { #special case for $_ (IN THE CASE OF PRINTING FROM THE COMMAND LINE?) 
+		my $var = $1;
+		if ($var =~ /^\s*print\s*\$\_\s*;$/) { #special case for $_ (IN THE CASE OF PRINTING FROM THE COMMAND LINE?) 
 			&whitespacePrinter($whitespaceCounter);		
 			print "print line\n";
-		} elsif ($printInput =~ /^(.*)\s*\$(.*)*$/) { #there is ONE variable
+		} elsif ($var =~ /^(.*)\s*\$(.*)*$/) { #there is ONE variable
 			&whitespacePrinter($whitespaceCounter);			
-			$printInput =~ s/\$//; #removes variable signs
-			$printInput =~ s/\@//;
-			print "sys.stdout.write($printInput)\n";
-		} else { #there is no variable (or many, which currently kill everything)
+			$var =~ s/\$//; #removes variable signs
+			$var =~ s/\@//;
+			print "sys.stdout.write($var)\n";
+		} else { #there is no variable 
 			&whitespacePrinter($whitespaceCounter);
-			print "sys.stdout.write(\"$printInput\")\n";
+			print "sys.stdout.write(\"$var\")\n";
 		}
 
 #break/continue	
@@ -210,20 +210,6 @@ while (my $line = <>) {
 	} elsif ($line =~ /^\s*shift\s*\@(.*);$/) {
 		&whitespacePrinter($whitespaceCounter);
 		print "$1.shift\n";
-
-
-#concatenation with . (both dont add spaces by default yay) (with + is the same)
-#	} elsif ($line =~ /^\s*(.*)\s*\.\s*(.*)\s*;$/) { #untested match
-#		$line =~ s/\./\+/;
-#		print $line;
-
-#substitution s/// (UNTESTED)
-	#    $line =~ s/[aeiou]//g; becomes     line = re.sub(r'[aeiou]', '', line)
-#	} elsif ($line =~ /^\s*\$(.*)\s*(.*)\s*s\/(.*)\/(.*)\/(.*);$/) {
-#		my $variableName = $1;
-#		my $replaced = $3;
-#		my $replacedWith = $4;
-#		print "$variableName = re.sub(r'$3', '$4', $variableName)"
 
 # Lines we can't translate are turned into comments
 	} else { 
