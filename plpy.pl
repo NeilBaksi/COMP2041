@@ -2,6 +2,8 @@
 
 use strict;
 
+# Assignment 2 'plpy.pl' written by Supratik Baksi, z5081777
+
 my $whitespaceCounter = 0; #global variable? Its outside the loop...
 
 while (my $line = <>) {
