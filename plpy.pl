@@ -11,15 +11,15 @@ while (my $line = <>) {
 	#NOTE: Deal with semicolons on a line by line basis
 
 # to translate #! line 
-	if ($line =~ /^#!/ && $. == 1) {
-		print "#!/usr/bin/python2.7 -u\n";
+	if ($line =~ /^#!/){ # && $. == 1) {
+		print "#!/usr/bin/python2.7 -u\n"; 
 
 # to deal with blank & comment lines
 	} elsif ($line =~ /^\s*#/ || $line =~ /^\s*$/) {
 		print $line;
 
 # to deal with print statements with newline
-	} elsif ($line =~ /^\s*print\s*"(.*)\\n"[\s;]*$/) {
+	} elsif ($line =~ /^\s*print\s*"(.*)\\n"[\s;]*$/) { # can remove all the \s, theyre just for white spaces
 		my $printIN = $1;
 		if($printIN =~ /ARGV\[(.*)\]$/) { #that variable is ARGV[]
 			&whitespacePrinter($whitespaceCounter);
