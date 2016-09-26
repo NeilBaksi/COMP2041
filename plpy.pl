@@ -21,7 +21,8 @@ while (my $line = <>) {
 # to deal with print statements with newline
 	} elsif ($line =~ /^\s*print\s*"(.*)\\n"[\s;]*$/) { # can remove all the \s, theyre just for white spaces
 		my $printIN = $1;
-		if($printIN =~ /ARGV\[(.*)\]$/) { #that variable is ARGV[]
+		# there can be 4 cases
+		if($printIN =~ /ARGV\[(.*)\]$/) { #that variable is ARGV[] 
 			&whitespacePrinter($whitespaceCounter);
 			my $location = $1;
 			$location =~ s/\$//;
