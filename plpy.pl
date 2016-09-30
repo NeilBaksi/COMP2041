@@ -13,9 +13,45 @@ sub printWhiteSpaces {
 		print '   ';  
 	}
 }
+foreach my $line (<>) {
+    # skim read to set flags and translating certain phrases
+	if($line =~ /<STDIN>/ || $line =~ /ARGV/){	
+		$sys = 1;
+		$line =~ s/\@ARGV/sys.argv[1:]/g;
+	}
+	if($line =~ /(\d)+\.\.(\d)+/){
+	    $range1 = $1;
+	    $range2 = $2+1;
+	    $line =~ s/\d+\.\.\d+/xrange($range1, $range2)/g;
+	}
+	if($line =~ /<>/){
+	    $fileinput = 1;
+	}
+	if($line =~ /0\.\.\$#ARGV/){
+	    $line =~ s/0\.\.\$#ARGV/xrange(len(sys.argv)-1)/g;
+	}
+	if($line =~ /\$ARGV\[(.*)\]/){
+	    $index = $1;
+	    $index =~ s/\$//g;
+	    $line =~ s/ARGV\[.*\]/sys.argv[$index+1]/g;
+	}
+	if($line =~ /(\$[^\s]*)\s*%|[<>=]+\s*[\d]+/){
+	    $float = 1;
+	    $floatvariable = $1;    
+    }
+    if($line =~ /open\s(.*),\s*[\"<>]*([^";]*)[\";]*/){
+		$open{$1} = $2;
+    }
+    if($line =~ /\$([^\s]*){.*}.*;/g){
+		$hash = 1;
+		$hashes{$1} = 1;
+    }
+    if($line =~ /\$[1-9]/){
+		$line =~ s/\$([0-9])/m.group($1)/g;
+    }
+}
 
-while (my $line = <>) {
-
+while ($line = <>) {
 
 # to translate #! line 
 	if ($line =~ /^#!/ && $. == 1){ 
