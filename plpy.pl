@@ -13,68 +13,30 @@ sub printWhiteSpaces {
 		print '   ';  
 	}
 }
-foreach my $line (<>) {
-    # skim read to set flags and translating certain phrases
-	if($line =~ /<STDIN>/ || $line =~ /ARGV/){	
-		$sys = 1;
-		$line =~ s/\@ARGV/sys.argv[1:]/g;
-	}
-	if($line =~ /(\d)+\.\.(\d)+/){
-	    $range1 = $1;
-	    $range2 = $2+1;
-	    $line =~ s/\d+\.\.\d+/xrange($range1, $range2)/g;
-	}
-	if($line =~ /<>/){
-	    $fileinput = 1;
-	}
-	if($line =~ /0\.\.\$#ARGV/){
-	    $line =~ s/0\.\.\$#ARGV/xrange(len(sys.argv)-1)/g;
-	}
-	if($line =~ /\$ARGV\[(.*)\]/){
-	    $index = $1;
-	    $index =~ s/\$//g;
-	    $line =~ s/ARGV\[.*\]/sys.argv[$index+1]/g;
-	}
-	if($line =~ /(\$[^\s]*)\s*%|[<>=]+\s*[\d]+/){
-	    $float = 1;
-	    $floatvariable = $1;    
-    }
-    if($line =~ /open\s(.*),\s*[\"<>]*([^";]*)[\";]*/){
-		$open{$1} = $2;
-    }
-    if($line =~ /\$([^\s]*){.*}.*;/g){
-		$hash = 1;
-		$hashes{$1} = 1;
-    }
-    if($line =~ /\$[1-9]/){
-		$line =~ s/\$([0-9])/m.group($1)/g;
-    }
-}
 
-while ($line = <>) {
+while (my $line = <>) {
 
 # to translate #! line 
 	if ($line =~ /^#!/ && $. == 1){ 
 		print "#!/usr/bin/python3.5 -u\n"; 
-		
+
+#looping through every line in a FILE 
+	} elsif ($line =~ /^\s*while\s*(.*)\<\>(.*)\s*(.*)\s*$/) {
+		&printWhiteSpaces($whiteSpaces);	
+		print "import fileinput\n";
+		&printWhiteSpaces($whiteSpaces);	
+		print "for line in fileinput.input():\n"	
+
+#looping through STDIN (while loop)
+	} elsif ($line =~ /^\s*while\s*(.*)\<STDIN\>(.*)\s*(.*)\s*$/) {
+		&printWhiteSpaces($whiteSpaces);
+		print "import sys\n";
+		&printWhiteSpaces($whiteSpaces);
+		print "for line in sys.stdin:\n"; 
 # to deal with blank & comment lines
 	} elsif ($line =~ /^\s*#/ || $line =~ /^\s*$/) {
 		print $line;
 		
-# to deal with variable initialization
-	#} elsif ($line =~ /^\s*(my)*\s*\$([\w\d]*)\s*=\s*([^;^~]*)[\s;]*$/){
-	#	my $content = $3;
-	#	$line =~ s/[\$;]//g;
-	#	if ($content eq "<STDIN>"){
-	#	    # <STDIN> case
-	#		$line =~ s/<STDIN>/sys.stdin.readline()/g;			 
-	#	    if($float){
-         #       $line =~ s/=\s*/= float(/g;
-          #      $line =~ s/\n/)\n/g;
-         #   }
-	#	}
-	#	print $line; 	
-
 # to deal with print statements with \n
 	} elsif ($line =~ /^\s*print\s*"(.*)\\n"[\s;]*$/) { 
 		my $var = $1; # var = individual line, the part b/w print and \n 
@@ -149,7 +111,7 @@ sub arithmeticLines {
 	$_[0] =~ s/ le / <= /g;	
 
 	#division
-	$_[0] =~ s/\//\/\//g;
+	$_[0] =~ s/\//\//g;
 
 	#remove semicolon
 	$_[0] =~ s/\;//;
@@ -167,20 +129,7 @@ sub arithmeticLines {
 		$line =~ s/ne/!=/g;
 		&printWhiteSpaces($whiteSpaces);
         	print $line;
-		
-#looping through every line in a FILE 
-	} elsif ($line =~ /^\s*while\s*(.*)\<\>(.*)\s*(.*)\s*$/) {
-		&printWhiteSpaces($whiteSpaces);	
-		print "import fileinput\n";
-		&printWhiteSpaces($whiteSpaces);	
-		print "for line in fileinput.input():\n"	
-
-#looping through STDIN (while loop)
-	} elsif ($line =~ /^\s*while\s*(.*)\<STDIN\>(.*)\s*(.*)\s*$/) {
-		&printWhiteSpaces($whiteSpaces);
-		print "import sys\n";
-		&printWhiteSpaces($whiteSpaces);
-		print "for line in sys.stdin:\n"; 
+	
 		
 # to deal with break/continue	
 	} elsif ($line =~ /^\s*last;$/) {
@@ -191,14 +140,14 @@ sub arithmeticLines {
 		&printWhiteSpaces($whiteSpaces);
 		print "continue\n";
 
-#chomp from STDIN
+# to deal with chomp from STDIN
 	} elsif ($line =~ /^\s*chomp\s*\$(.*)\s*;$/) {
-		&printWhiteSpaces($whiteSpaces);	
-		print "$1 = sys.stdin.readlines()\n";
-		#&printWhiteSpaces($whiteSpaces);
-		#print "$1 = $1.rstrip()\n";
+		#&printWhiteSpaces($whiteSpaces);	
+		#print "$1 = sys.stdin.readlines()\n";
+		&printWhiteSpaces($whiteSpaces);
+		print "$1 = $1.rstrip()\n";
 
-#split
+# to deal with split
 	} elsif ($line =~ /^\s*(.*)\s*=\s*split\(\/(.*)\/,\s*\$(.*)\)\s*;/) {
 		my $string = $3;
 		my $delineator = $2;
@@ -206,7 +155,7 @@ sub arithmeticLines {
 		&printWhiteSpaces($whiteSpaces);
 		print "$assignmentVariable = $string.split(\"$delineator\")\n";
 
-#join
+# to deal with join
 	} elsif ($line =~ /^\s*(.*)\s*=\s*join\(\'(.*)\'\,\s*(.*)\)\s*;$/) {
 		my $assignmentVariable = $1;
 		my $string = $3;
@@ -222,7 +171,7 @@ sub arithmeticLines {
 		$line =~ s/--\s*;/ -= 1/g;
 		print $line;
 
-#foreach (with ARGV) (super specific, could do with broadening in scope)
+# to deal with foreach (with ARGV)
 	} elsif ($line =~ /^\s*foreach\s*\$(.*)\s*\((.*)\)\s*{\s*$/) {
 		&printWhiteSpaces($whiteSpaces);
 		$line =~ s/each*|\$*//g;
@@ -230,11 +179,12 @@ sub arithmeticLines {
 		$line =~ s/\)\s*{/:/g;
 		$line =~ s/\@//g;
 		print "$line";
-#while loops
+# to deal with while loops
 	} elsif ($line =~ /^\s*(.*)\s*while\s*\((.*)\)(.*)\s*$/) {
 		if ($line =~ /^\s*(.*)\s*while\s*\((.*)\s*\<STDIN\>\s*\)(.*)\s*$/) { # STDIN condition
 			&printWhiteSpaces($whiteSpaces);		
 			print "for line in sys.stdin:";
+			$whiteSpaces ++;
 		} else {
 			my $whileCondition = $2;
 			&printWhiteSpaces($whiteSpaces);		
@@ -244,37 +194,34 @@ sub arithmeticLines {
 			$whiteSpaces ++;
 		}
 
-# elsif 
+# to deal with elsif 
 	} elsif ($line =~ /^\s*(.*)\s*elsif\s*\((.*)\)(.*)\s*$/) {
-		#remember to remove } if present
-		#becomes elif
 		my $elsifCondition = $2;
 		&printWhiteSpaces($whiteSpaces-1);
-		print "elif ";					#so, so frustratingly messy :/
+		print "elif ";		
 		&arithmeticLines($elsifCondition);
 		print ":\n";
 
-#if statements
+# to deal with if statements
 	} elsif ($line =~ /^\s*(.*)\s*if\s*\((.*)\)(.*)\s*$/) {
 		my $ifCondition = $2;
 		&printWhiteSpaces($whiteSpaces);
-		print "if ";					#ugh this is messy :/
+		print "if ";	
 		&arithmeticLines($ifCondition);
 		print ":\n";
 		$whiteSpaces ++;
 
-#else
+# to deal with else
 	} elsif ($line =~ /^\s*(.*)\s*else\s*(.*)\s*$/) {
-		#remember to remove } if present
 		&printWhiteSpaces($whiteSpaces-1);
 		print "else:\n";;
 
-#end curly brace needs removal
+# to end curly brace
 	} elsif ($line =~ /^\s*}\s*$/) {
 		$line =~ s/\}/ /;
 		$whiteSpaces --;
 
-#array conversion
+# to deal with array conversion
 	}elsif ($line =~ /^\s*(.*)\s*\@(.*)\s*(.*)\s*;$/) { #array in the line	
 		my $arrayName = $2; 
 		if (/^\s*(.*)\s*\@(.*)\s*=\s*((.*))\s*;$/) { #declaring the array
@@ -285,27 +232,26 @@ sub arithmeticLines {
 			$line =~ s/\;//;
 			print "$line";
 		} else { #accessing the array
-			#  $arrayName[0 or whatever];
 			$line =~ s/\@//;
 			$line =~ s/\;//;
 			print "$line";
 		}
-#push
+#to deal with push
 	} elsif ($line =~ /^\s*push\s*\@(.*)\,\s*(.*)\s*;$/) {
 		&printWhiteSpaces($whiteSpaces);
 		print "$1.push($2)\n";
 
-#pop
+# to deal with pop
 	} elsif ($line =~ /^\s*pop\s*\@(.*);$/) {
 		&printWhiteSpaces($whiteSpaces);
 		print "$1.pop\n";
 
-#unshift
+# to deal with unshift
 	} elsif ($line =~ /^\s*unshift\s*\@(.*)\,\s*(.*)\s*;$/) {
 		&printWhiteSpaces($whiteSpaces);
 		print "$1.unshift($2)\n";
 
-#pop
+# to deal with pop
 	} elsif ($line =~ /^\s*shift\s*\@(.*);$/) {
 		&printWhiteSpaces($whiteSpaces);
 		print "$1.shift\n";
