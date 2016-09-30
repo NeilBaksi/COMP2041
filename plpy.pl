@@ -19,30 +19,30 @@ while (my $line = <>) {
 
 # to translate #! line 
 	if ($line =~ /^#!/ && $. == 1){ 
-		print "#!/usr/bin/python2.7 -u\n"; 
+		print "#!/usr/bin/python3.5 -u\n"; 
 		
 # to deal with blank & comment lines
 	} elsif ($line =~ /^\s*#/ || $line =~ /^\s*$/) {
 		print $line;
 		
 # to deal with variable initialization
-	} elsif ($line =~ /^\s*(my)*\s*\$([\w\d]*)\s*=\s*([^;^~]*)[\s;]*$/){
-		$content = $3;
-		$line =~ s/[\$;]//g;
-		if ($content eq "<STDIN>"){
-		    # <STDIN> case
-			$line =~ s/<STDIN>/sys.stdin.readline()/g;			 
-		    if($float){
-                $line =~ s/=\s*/= float(/g;
-                $line =~ s/\n/)\n/g;
-            }
-		}
-		print $line; 	
+	#} elsif ($line =~ /^\s*(my)*\s*\$([\w\d]*)\s*=\s*([^;^~]*)[\s;]*$/){
+	#	my $content = $3;
+	#	$line =~ s/[\$;]//g;
+	#	if ($content eq "<STDIN>"){
+	#	    # <STDIN> case
+	#		$line =~ s/<STDIN>/sys.stdin.readline()/g;			 
+	#	    if($float){
+         #       $line =~ s/=\s*/= float(/g;
+          #      $line =~ s/\n/)\n/g;
+         #   }
+	#	}
+	#	print $line; 	
 
 # to deal with print statements with \n
 	} elsif ($line =~ /^\s*print\s*"(.*)\\n"[\s;]*$/) { 
-		my $var = $1; # for the case where we print cmd line argument
-		if($var =~ /ARGV\[(.*)\]$/) { #that variable is ARGV[] 
+		my $var = $1; # var = individual line, the part b/w print and \n 
+		if($var =~ /ARGV\[(.*)\]$/) { #the variable is ARGV[] 
 			&printWhiteSpaces($whiteSpaces);
 			my $argument = $1; 
 			$argument =~ s/\$//; # remove variable sign from argument
@@ -57,7 +57,6 @@ while (my $line = <>) {
 			$var =~ s/\@//;
 			&printWhiteSpaces($whiteSpaces);
 			print "print $var\n";
-			
 		} else { #there is no variable
 			&printWhiteSpaces($whiteSpaces);
 			print "print \"$var\"\n";
@@ -93,7 +92,7 @@ sub arithmeticLines {
 	# $#
 	$_[0] =~ s/\$\#ARGV/len\(sys\.argv\)/;
 
-	#removes $ before variables
+	#removes $
 	$_[0] =~ s/\$//g;
 	$_[0] =~ s/\@//g;
 
@@ -105,7 +104,7 @@ sub arithmeticLines {
 	$_[0] =~ s/\|\|/or /g;
 	$_[0] =~ s/!\s/not /g;
 
-	#comparison operators that dont exist in Python replaced with those that do
+	#comparison operators 
 	$_[0] =~ s/ eq / == /g;
 	$_[0] =~ s/ ne / != /g;
 	$_[0] =~ s/ gt / > /g;
@@ -116,9 +115,10 @@ sub arithmeticLines {
 	#division
 	$_[0] =~ s/\//\/\//g;
 
-	#remove that semicolon
+	#remove semicolon
 	$_[0] =~ s/\;//;
 	print $_[0];
+}
 # to deal with comparison stuff
 	} elsif ($line =~ /^\s*while\s*\(([^(^).]*)\)\s*$/){
 		$line =~ s/[\(\$]//g;
@@ -129,8 +129,8 @@ sub arithmeticLines {
 		$line =~ s/le/<=/g;
 		$line =~ s/ge/>=/g;
 		$line =~ s/ne/!=/g;
-		}
-        print $line;
+		&printWhiteSpaces($whiteSpaces);
+        	print $line;
 		
 #looping through every line in a FILE 
 	} elsif ($line =~ /^\s*while\s*(.*)\<\>(.*)\s*(.*)\s*$/) {
@@ -158,7 +158,9 @@ sub arithmeticLines {
 #chomp from STDIN
 	} elsif ($line =~ /^\s*chomp\s*\$(.*)\s*;$/) {
 		&printWhiteSpaces($whiteSpaces);	
-		print "$1 = sys.stdin.readlines()\n"
+		print "$1 = sys.stdin.readlines()\n";
+		#&printWhiteSpaces($whiteSpaces);
+		#print "$1 = $1.rstrip()\n";
 
 #split
 	} elsif ($line =~ /^\s*(.*)\s*=\s*split\(\/(.*)\/,\s*\$(.*)\)\s*;/) {
@@ -178,7 +180,7 @@ sub arithmeticLines {
 
 # to deal with ++ and --
 	} elsif ($line =~ /(\s*)(\$.*)\+\+|(.*)--/){
-		&whitespacePrinter($whitespaceCounter);
+		&printWhiteSpaces($whiteSpaces);
 		$line =~ s/\$//g;
 		$line =~ s/\+\+\s*;/ += 1/g;
 		$line =~ s/--\s*;/ -= 1/g;
@@ -192,8 +194,6 @@ sub arithmeticLines {
 		$line =~ s/\)\s*{/:/g;
 		$line =~ s/\@//g;
 		print "$line";
-	    }
-	}
 #while loops
 	} elsif ($line =~ /^\s*(.*)\s*while\s*\((.*)\)(.*)\s*$/) {
 		if ($line =~ /^\s*(.*)\s*while\s*\((.*)\s*\<STDIN\>\s*\)(.*)\s*$/) { # STDIN condition
