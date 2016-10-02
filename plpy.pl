@@ -13,26 +13,26 @@ sub printWhiteSpaces {
 		print '   ';  
 	}
 }
-#my $sys = 0;
-#my $fileinput = 0;
-#my @code = <>
+# my $sys = 0;
+# my $fileinput = 0;
+# my @code = <>
 while (my $line = <>) {
-
-#foreach $line (@code) {
+# foreach $line (@code) {
 #	if($line =~ /<STDIN>/ || $line =~ /ARGV/){	
 #		$sys = 1;
-#		$line =~ s/\@ARGV/sys.argv[1:]/g;
+#		$line =~ s/\@ARGV/sys.argv[1:]/g;	
 #	}
 #	if($line =~ /(\d)+\.\.(\d)+/){
 #	    $range1 = $1;
 #	    $range2 = $2+1;
-#	    $line =~ s/\d+\.\.\d+/xrange($range1, $range2)/g;
+#	    $line =~ s/\d+\.\.\d+/range($range1, $range2)/g;
 #	}
 #	if($line =~ /<>/){
 #	    $fileinput = 1;
 #	}
 #}
-#foreach $line (@code) {
+
+#foreach my $line (@code) {
 # to translate #! line 
 	if ($line =~ /^#!/ && $. == 1){ 
 		print "#!/usr/bin/python3.5 -u\n"; 
@@ -42,9 +42,9 @@ while (my $line = <>) {
 		#	$sys = 0;
 		#}
 		#if ($fileinput){
-		    # fileinput case
-		 #   print "import fileinput, re\n";
-		  #  $fileinput = 0;
+		   #fileinput case
+		 #  print "import fileinput, re\n";
+		  # $fileinput = 0;
 		#}
 
 #looping through every line in a FILE 
@@ -66,8 +66,8 @@ while (my $line = <>) {
 		
 # to deal with print statements with \n
 	} elsif ($line =~ /^\s*print\s*"(.*)\\n"[\s;]*$/) { 
-		my $var = $1; # var = individual line, the part b/w print and \n 
-		if($var =~ /ARGV\[(.*)\]$/) { #the variable is ARGV[] 
+		my $var = $1; # var = unknown variable
+		if($var =~ /ARGV\[(.*)\]$/) { # the variable is ARGV[] 
 			&printWhiteSpaces($whiteSpaces);
 			my $argument = $1; 
 			$argument =~ s/\$//; # remove variable sign from argument
@@ -82,11 +82,32 @@ while (my $line = <>) {
 			$var =~ s/\@//;
 			&printWhiteSpaces($whiteSpaces);
 			print "print $var\n";
-		} else { #there is no variable
+			
+		} else { # for when there is no variable
 			&printWhiteSpaces($whiteSpaces);
 			print "print \"$var\"\n";
 		}
-
+# to deal with print statements with \n (special case of stuff outside "")
+	} elsif ($line =~ /^\s*print\s*(.*)\s*"(.*)\\n"[\s;]*$/) {
+		my $var = $1; # var = unknown variable
+		if ($var =~ /^(.*)\s*\$(.*)*$/) { #there is one variable
+			$var =~ s/\$//; #removes variable signs
+			$var =~ s/\,//;			
+			&printWhiteSpaces($whiteSpaces);
+			print "print $var\n";
+		
+# to deal with join
+		} if($var =~ /join\s*\((.*)\s*,\s*(.*)\)/){
+		#if($join =~ /join\(\'(.*)\'\,\s*(.*)\)\s*;$/){	
+			my $char = $1;
+			my $join = $2;
+			$var =~ s/join\s*\(.*\)/$char.join($join)/g;
+			$var =~ s/,*\s*\"\\n\";//g;
+			# ARGV case
+			$var =~ s/\@ARGV/sys.argv[1:]/g;
+			$var =~ s/\,//g;			
+			}
+		print "print ($var)\n";
 # to deal with print statments without \n
 	} elsif ($line =~ /^\s*print\s*"(.*)"[\s;]*$/) { # multiple \s's as there can be random spaces between the words
 		my $var = $1;
@@ -98,27 +119,6 @@ while (my $line = <>) {
 			&printWhiteSpaces($whiteSpaces);			
 			$var =~ s/[\$\@]//; #removes variable signs
 			print "sys.stdout.write($var)\n";
-# to deal with join
-		 #elsif ($line =~ /^\s*(.*)\s*=\s*join\(\'(.*)\'\,\s*(.*)\)\s*;$/) {
-		
-		}elsif($var =~ /^(.*),\s*\"\\n\"/){
-		    # (print ...., "\n";)
-			my $join = $1;
-			#if($join =~ /join\s*\((.*)\s*,\s*(.*)\)/){
-			if($join =~ /join\(\'(.*)\'\,\s*(.*)\)\s*;$/){	
-				my $space = $1;
-				my $joincontent = $2;
-				$line =~ s/join\s*\(.*\)/$space.join($joincontent)/g;
-				$line =~ s/,*\s*\"\\n\";//g;
-			}
-			else{
-				$line =~ s/[\$;]//g;
-				$line =~ s/,*\s*\"\\n\"//g;
-			}
-		#my $string = $3;
-		#my $delineator = $2;
-		#&printWhiteSpaces($whiteSpaces);
-		#print "$assignmentVariable = '$delineator'.join([$string])";	
 
 		} else { #there is no variable 
 			&printWhiteSpaces($whiteSpaces);
@@ -126,7 +126,7 @@ while (my $line = <>) {
 		}
 # to deal with arithmetic operations
 	} elsif ($line =~ /^\s*[^\s]*\s*=(.*);$/) {
-		if ($line =~ /^\s*\@(.*)\s*=\s*(.*);$/) {#arrays are dealt with seperately
+		if ($line =~ /^\s*\@(.*)\s*=\s*(.*);$/) { # deal with arrays separately
 			next;
 		} else {
 			&printWhiteSpaces($whiteSpaces);
@@ -137,19 +137,24 @@ sub arithmeticLines {
 	# $#
 	$_[0] =~ s/\$\#ARGV/len\(sys\.argv\)/;
 
-	#removes $
+	# removes $
 	$_[0] =~ s/\$//g;
 	$_[0] =~ s/\@//g;
 
-	#stdin
-	$_[0] =~ s/\<STDIN\>/sys\.stdin\.readline\(\)/;
+	# STDIN
+	if($line =~ /(\$[^\s]*)\s*%|[<>=]+\s*[\d]+/){ # case for when STDIN is a number
+		$_[0] =~ s/\<STDIN\>/float\(sys\.stdin\.readline\(\)\)/;	
+	}
+	else {
+		$_[0] =~ s/\<STDIN\>/sys\.stdin\.readline\(\)/;
+	}
 
-	#and/or/not
+	# and/or/not
 	$_[0] =~ s/\&\&/and /g;
 	$_[0] =~ s/\|\|/or /g;
 	$_[0] =~ s/!\s/not /g;
 
-	#comparison operators 
+	# comparison operators 
 	$_[0] =~ s/ eq / == /g;
 	$_[0] =~ s/ ne / != /g;
 	$_[0] =~ s/ gt / > /g;
@@ -157,10 +162,10 @@ sub arithmeticLines {
 	$_[0] =~ s/ ge / >= /g;
 	$_[0] =~ s/ le / <= /g;	
 
-	#division
+	# division
 	$_[0] =~ s/\//\//g;
 
-	#remove semicolon
+	# remove semicolon
 	$_[0] =~ s/\;//;
 	print $_[0];
 }
@@ -222,6 +227,10 @@ sub arithmeticLines {
 	    		my $val1 = $1;
  			my $val2 = $2+1;
     			$line =~ s/\d+\.\.\d+/range($val1, $val2)/g;
+		}
+		# to deal with the specific case of range where end is $#ARGV
+		if($line =~ /0\.\.\$#ARGV/){
+	    		$line =~ s/0\.\.\$#ARGV/range(len(sys.argv)-1)/g;
 		}
 		$line =~ s/each*|\$*//g;
 		$line =~ s/\(/in /;
