@@ -13,13 +13,39 @@ sub printWhiteSpaces {
 		print '   ';  
 	}
 }
+my $sys = 0;
+my $fileinput = 0;
+my @code = <>
+#while (my $line = <>) {
 
-while (my $line = <>) {
-
+foreach $line (@code) {
+	if($line =~ /<STDIN>/ || $line =~ /ARGV/){	
+		$sys = 1;
+		$line =~ s/\@ARGV/sys.argv[1:]/g;
+	}
+	if($line =~ /(\d)+\.\.(\d)+/){
+	    $range1 = $1;
+	    $range2 = $2+1;
+	    $line =~ s/\d+\.\.\d+/xrange($range1, $range2)/g;
+	}
+	if($line =~ /<>/){
+	    $fileinput = 1;
+	}
+}
+foreach $line (@code) {
 # to translate #! line 
 	if ($line =~ /^#!/ && $. == 1){ 
 		print "#!/usr/bin/python3.5 -u\n"; 
-
+		if ($sys){
+			# stdin / @ARGV case
+			print "import sys\n";
+			$sys = 0;
+		}
+		if ($fileinput){
+		    # fileinput case
+		    print "import fileinput, re\n";
+		    $fileinput = 0;
+		}
 #looping through every line in a FILE 
 	} elsif ($line =~ /^\s*while\s*(.*)\<\>(.*)\s*(.*)\s*$/) {
 		&printWhiteSpaces($whiteSpaces);	
