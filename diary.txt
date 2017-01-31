@@ -1,0 +1,26 @@
+Date	           Start	      Stop	            Activity	
+Mon Oct 31      05:25:00        10:36:02        final push, last changes before submitting
+Mon Oct 31      00:15:48        02:05:22        added functionality to create new user 
+Mon Oct 31      00:15:48        02:04:42        added functionality to delete user
+Mon Oct 31      10:43:43        00:09:31        Update new_page.cgi
+Sun Oct 30      20:05:21        23:09:38        finished basic workinf of subset 2 features
+Sun Oct 30      13:07:19        17:48:47        added forgot user and fixed some comments
+Sat Oct 29      17:20:00        18:56:10        added code for searching posts
+Sat Oct 29      13:03:51        17:04:38        added more fnctionality and subsets
+Thu Oct 27      12:05:02        18:27:51        added more functions, making comments, sorting, replying to comments sorta works for one new reply/comment, all user post printing ,and comments printing chronologically
+Tue Oct 25      18:00:00        19:01:55        fixed comments, fixed css
+Tue Oct 25      13:15:40        17:59:46        added more subsets coding, did searching, posts, comments, more css, tried comment chronology
+Mon Oct 24      15:00:00        21:12:59        added more to the interface, completed mate list and search for name, added log out function, added some part of diplaying, making and searching posts, pseudo-code ready
+Sun Oct 23      21:00:00        01:03:30        fixed up posting and user posts, attempted to put in chronology, fixed up css
+Sat Oct 22      12:20:23        18:58:05        fixed mate search a little, added basic structure of new post and comment, added a new cgi page for change of page
+Thu Oct 20      14:00:00        15:00:03        Update my_matelook.css
+Thu Oct 20      09:15:00        13:56:09        added better link functionality to user mate images
+Thu Oct 20      22:00:00        00:11:14        added the user mates search bar and linked user profiles, added some css to clean up user mates images
+Wed Oct 19      17:00:00        21:59:20        added bootstrap, fixed login, added css, added links to user mates, tried coding for 'search for names', changed the look
+Tue Oct 18      12:00:00        17:58:41        login done, inidividual pages set up, mates pictures printing with links
+Tue Oct 18      21:10:00        01:44:11        changed css of login, displaying mates with images
+Mon Oct 17      16:06:00        17:56:45        login works completely, user page outs properly, css of page was changed
+Mon Oct 17      14:15:00        16:05:39        login system works now, worked on making individual profiles
+Mon Oct 17      11:00:00        14:13:02        added code for second half of subset zero, and get the login page working
+Sun Oct 16      14:15:00        17:50:30        added basic skeleton code for login page and storing of private data
+Fri Oct 14      16:00:00        20:59:12        added everything for first part of subset 0 and login textboxes

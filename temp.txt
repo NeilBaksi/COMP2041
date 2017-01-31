@@ -1,0 +1,85 @@
+sub replies {
+     @temp=@_;
+     @cntr =glob("$temp[0]/replies/*");
+     $x=0;
+
+     while($x<= $#cntr){
+             my $user_posts_replies = "$temp[0]/replies/$x/reply.txt";
+
+             
+             open( my $fh, '<', $user_posts_replies ) or die "Can't open $user_posts_replies: $!";     
+             while ( my $line = <$fh> ) {                    
+                if ( $line =~ /(^from)/ ) {
+                    $rfrom = $line;
+                }
+                if ( $line =~ /(^message)/ ) {             
+                    $rmessage = $line ;
+                    $rmessage =~ s/(message=)/ /g ;         
+                }
+                if ( $line =~ /(^time)/ ) {
+                    $rtime = $line;
+                    $rtime =~ s/(time=)/ /g ;
+                }
+             }     
+             close $fh;
+             $rmessage =~ s/^\s+|\s+$//g;
+             @rmessages = split / /,$rmessage;  
+         
+	         $k=0;
+	         while ($k<=$#rmessages){             
+                 if ($rmessages[$k] =~ /(z[0-9]{7})/){
+                    $temp1 = $1;
+                    my $user_filename = "dataset-medium/$temp1/user.txt";
+                        open( my $fh, '<', $user_filename ) or die "Can't open $user_filename: $!";     
+                        while ( my $line = <$fh> ) {         
+                            if ( $line =~ /(^full_name)/ ) {             
+                                $line =~ s/(full_name=)//;
+                                $line =~ s/\s*$//;
+                                $full_name = $line;
+                                $full_name =~ s/^.*$/<a href="http:\/\/cgi.cse.unsw.edu.au\/~z5081777\/ass2\/new_page.cgi?value=$temp1">$line<\/a>/g;#/
+                                $rmessages[$k] =~ s/$temp1/$full_name/g;
+                            }  	        
+                        }close $fh;
+                     
+                    }$k++;
+                    $new_cmessage = join(' ', @rmessages); 
+                    $new_message =~ s/(\\n\\n)/<p>/g;
+                    $new_message =~ s/(\\n)/<br>/g;            
+            }
+            if ($rfrom =~ /(z[0-9]{7})/){
+                    $temp1 = $1;
+                    my $user_filename = "dataset-medium/$temp1/user.txt";
+                        open( my $fh, '<', $user_filename ) or die "Can't open $user_filename: $!";     
+                        while ( my $line = <$fh> ) {         
+                            if ( $line =~ /(^full_name)/ ) {             
+                                $line =~ s/(full_name=)//;
+                                $line =~ s/\s*$//;
+                                $full_name = $line;
+                                $full_name =~ s/^.*$/<a href="http:\/\/cgi.cse.unsw.edu.au\/~z5081777\/ass2\/new_page.cgi?value=$temp1">$line<\/a>/g;#/
+                                
+                            }  	        
+                        }close $fh;
+                 $rfrom =~ s/$temp1/$full_name/g;
+                }
+                
+               $temp2 = $rtime.'<p>'.$rfrom.'<p>'.$new_cmessage;
+               push @replies, $temp2;
+               $x++;
+    }
+    @replies = sort @replies;
+    $i=0;
+
+    while($i<= $#replies){
+        my $id = param('loginUser');
+
+        $replies[$i] =~ s/(\/replies\/\d)//;
+         print "<div class =\"matelook_user_posts\">\n ",
+                 "<p>\t$replies[$i]<p>",
+                "</div>";
+
+          $i++;        
+   }
+   @replies = ();
+
+}
+
