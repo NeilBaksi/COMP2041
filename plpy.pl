@@ -2,7 +2,7 @@
 
 #use strict;
 
-
+# Perl to Python Converter
 # Assignment 2 'plpy.pl' written by Supratik Baksi, z5081777
 
 my $whiteSpaces = 0; # to keep the count of the number of white spaces
